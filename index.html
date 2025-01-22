@@ -3,130 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase Data Display</title>
+    <title>Smart Parking System</title>
     <!-- Include Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.4.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.4.0/firebase-database.js"></script>
+    <!-- Include Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgNJJ1Egse_nlVJChLHjn3XLXUOUjbBuI"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             height: 100vh;
-            background-image: url('https://t3.ftcdn.net/jpg/02/32/58/98/360_F_232589869_XT6WiUaVstXwnFFxMf02wsgxol3bCPOa.jpg');
-            background-size: cover;
-            background-position: center;
+            background-color: #f4f4f9;
         }
 
-        h1 {
+        nav {
+            background-color: #6457a6;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav a {
             color: #fff;
-            text-align: center;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            margin-bottom: 30px;
-        }
-
-        table {
-            width: 80%;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-collapse: collapse;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        th {
-            padding: 15px;
-            text-align: center;
-            background-color: #6457a6; /* Purple */
-            color: #fff;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 16px;
             font-weight: bold;
         }
 
-        td {
-            padding: 15px;
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        h1 {
+            color: #6457a6;
             text-align: center;
-            color: #333;
-            background-color: #f2f2f2; /* Light Gray */
+            margin: 20px 0;
         }
 
-        .free {
-            background-color: #66cdaa; /* Green */
+        #map, #video-stream, #data-section {
+            display: none;
+            margin: 0 auto;
+            width: 90%;
+            height: 70vh;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #map {
+            display: block; /* Show the map by default */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #6457a6;
             color: #fff;
         }
 
-        .occupied {
-            background-color: #ff6f61; /* Red */
+        td.free {
+            background-color: #66cdaa;
             color: #fff;
         }
 
-        @media screen and (max-width: 600px) {
-            table {
-                width: 100%;
-            }
+        td.occupied {
+            background-color: #ff6f61;
+            color: #fff;
         }
-
     </style>
 </head>
 <body>
-    <h1>Parking Slot Availability</h1>
-    <table id="data-table">
-        <thead>
-            <tr>
-                <th>Parking Area</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody id="data-body"></tbody>
-    </table>
+    <!-- Navigation Bar -->
+    <nav>
+        <a href="#" onclick="showSection('map')">Map</a>
+        <a href="#" onclick="showSection('video-stream')">Live Video</a>
+        <a href="#" onclick="showSection('data-section')">Parking Data</a>
+    </nav>
 
-    <!-- Firebase configuration and initialization -->
- <!-- Firebase configuration and initialization -->
-<script>
-    // Your web app's Firebase configuration
-    var firebaseConfig = {
-        apiKey: "AIzaSyDE7axj-wY3D-Hbka-_rdxcmFdeE6Qi5CM",
-        authDomain: "smart-parking-using-iot-8d52a.firebaseapp.com",
-        databaseURL: "smart-parking-using-iot-8d52a-default-rtdb.firebaseio.com",
-        projectId: "smart-parking-using-iot-8d52a",
-        storageBucket: "smart-parking-using-iot-8d52a.appspot.com",
-        messagingSenderId: "null",
-    };
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
+    <h1>Smart Parking System</h1>
 
-    // Reference to your Firebase Realtime Database
-    var database = firebase.database();
+    <!-- Map Section -->
+    <div id="map"></div>
 
-    // Reference to the location of your data in the database
-    var parkingRef = database.ref('parking');
+    <!-- Video Stream Section -->
+    <div id="video-stream">
+        <video id="parking-video" controls autoplay muted>
+            <source src="https://raw.githubusercontent.com/priyasp2804/smart-parking-system/main/parking1.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>        
+    </div>
 
-    // Read data from the database
-    parkingRef.once('value')
-        .then(function(snapshot) {
-            var data = snapshot.val();
-            var dataTable = document.getElementById('data-body');
-            dataTable.innerHTML = ''; // Clear previous data
+    <!-- Parking Data Section -->
+    <div id="data-section">
+        <table>
+            <thead>
+                <tr>
+                    <th>Parking Area</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="data-body"></tbody>
+        </table>
+    </div>
 
-            // Loop through each parking area
-            for (var area in data) {
-                var availability = data[area];
-                var status = availability === 1 ? 'Free' : 'Occupied'; // Corrected interpretation
-                var row = `
-                    <tr>
-                        <td class="area-column">Parking Area ${area}</td>
-                        <td class="${status.toLowerCase()}">${status}</td>
-                    </tr>
-                `;
-                dataTable.innerHTML += row;
-            }
-        })
-        .catch(function(error) {
-            console.error('Error fetching data:', error);
-        });
-</script>
+    <!-- Firebase Configuration and Script -->
+    <script>
+        // Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyDE7axj-wY3D-Hbka-_rdxcmFdeE6Qi5CM",
+            authDomain: "smart-parking-using-iot-8d52a.firebaseapp.com",
+            databaseURL: "https://smart-parking-using-iot-8d52a-default-rtdb.firebaseio.com",
+            projectId: "smart-parking-using-iot-8d52a",
+            storageBucket: "smart-parking-using-iot-8d52a.appspot.com",
+            messagingSenderId: "null",
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
 
+        // Reference Firebase Database
+        var parkingRef = firebase.database().ref('parking');
+
+        // Fetch parking data and display in the table
+        parkingRef.once('value')
+            .then(function(snapshot) {
+                var data = snapshot.val();
+                var dataBody = document.getElementById('data-body');
+                dataBody.innerHTML = ''; // Clear existing data
+
+                for (var area in data) {
+                    var status = data[area] === 1 ? 'Free' : 'Occupied';
+                    var row = `
+                        <tr>
+                            <td>Parking Area ${area}</td>
+                            <td class="${status.toLowerCase()}">${status}</td>
+                        </tr>
+                    `;
+                    dataBody.innerHTML += row;
+                }
+            })
+            .catch(function(error) {
+                console.error("Error fetching data:", error);
+            });
+
+        // Google Maps Initialization
+        function initMap() {
+            var parkingLocation = { lat: 11.0168, lng: 76.9558 }; // Example: Replace with actual parking location
+            var map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 15,
+                center: parkingLocation
+            });
+
+            var marker = new google.maps.Marker({
+                position: parkingLocation,
+                map: map,
+                title: "Parking Area"
+            });
+        }
+
+        // Load Google Maps on window load
+        window.onload = initMap;
+
+        // Navigation Bar Logic
+        function showSection(sectionId) {
+            document.getElementById("map").style.display = "none";
+            document.getElementById("video-stream").style.display = "none";
+            document.getElementById("data-section").style.display = "none";
+
+            document.getElementById(sectionId).style.display = "block";
+        }
+    </script>
 </body>
 </html>

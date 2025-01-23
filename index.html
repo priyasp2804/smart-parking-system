@@ -52,10 +52,6 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         }
 
-        #map {
-            display: block; /* Show the map by default */
-        }
-
         table {
             width: 100%;
             border-collapse: collapse;
@@ -102,7 +98,7 @@
         <video id="parking-video" controls autoplay muted>
             <source src="https://raw.githubusercontent.com/priyasp2804/smart-parking-system/main/parking1.mp4" type="video/mp4">
             Your browser does not support the video tag.
-        </video>        
+        </video>
     </div>
 
     <!-- Parking Data Section -->
@@ -135,31 +131,27 @@
         // Reference Firebase Database
         var parkingRef = firebase.database().ref('parking');
 
-        // Fetch parking data and display in the table
-        parkingRef.once('value')
-            .then(function(snapshot) {
-                var data = snapshot.val();
-                var dataBody = document.getElementById('data-body');
-                dataBody.innerHTML = ''; // Clear existing data
+        // Fetch parking data and update in real-time
+        parkingRef.on('value', function(snapshot) {
+            var data = snapshot.val();
+            var dataBody = document.getElementById('data-body');
+            dataBody.innerHTML = ''; // Clear existing data
 
-                for (var area in data) {
-                    var status = data[area] === 1 ? 'Free' : 'Occupied';
-                    var row = `
-                        <tr>
-                            <td>Parking Area ${area}</td>
-                            <td class="${status.toLowerCase()}">${status}</td>
-                        </tr>
-                    `;
-                    dataBody.innerHTML += row;
-                }
-            })
-            .catch(function(error) {
-                console.error("Error fetching data:", error);
-            });
+            for (var area in data) {
+                var status = data[area] === 1 ? 'Free' : 'Occupied';
+                var row = `
+                    <tr>
+                        <td>Parking Area ${area}</td>
+                        <td class="${status.toLowerCase()}">${status}</td>
+                    </tr>
+                `;
+                dataBody.innerHTML += row;
+            }
+        });
 
         // Google Maps Initialization
         function initMap() {
-            var parkingLocation = { lat: 11.0168, lng: 76.9558 }; // Example: Replace with actual parking location
+            var parkingLocation = { lat: 11.0168, lng: 76.9558 }; // Replace with actual location
             var map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 15,
                 center: parkingLocation
@@ -172,17 +164,25 @@
             });
         }
 
-        // Load Google Maps on window load
-        window.onload = initMap;
-
         // Navigation Bar Logic
         function showSection(sectionId) {
+            // Save the selected section in localStorage
+            localStorage.setItem('activeSection', sectionId);
+
             document.getElementById("map").style.display = "none";
             document.getElementById("video-stream").style.display = "none";
             document.getElementById("data-section").style.display = "none";
 
             document.getElementById(sectionId).style.display = "block";
         }
+
+        // Load the active section from localStorage on page load
+        window.onload = function() {
+            initMap();
+
+            var activeSection = localStorage.getItem('activeSection') || 'map';
+            showSection(activeSection);
+        };
     </script>
 </body>
 </html>

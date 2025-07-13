@@ -1,188 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Parking System</title>
-    <!-- Include Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.4.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.4.0/firebase-database.js"></script>
-    <!-- Include Google Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgNJJ1Egse_nlVJChLHjn3XLXUOUjbBuI"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            background-color: #f4f4f9;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Parking System</title>
 
-        nav {
-            background-color: #6457a6;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+  <!-- Firebase & Google Maps -->
+  <script src="https://www.gstatic.com/firebasejs/8.4.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.4.0/firebase-database.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgNJJ1Egse_nlVJChLHjn3XLXUOUjbBuI"></script>
 
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            margin: 0 10px;
-            font-size: 16px;
-            font-weight: bold;
-        }
+  <!-- 👇 Updated Style -->
+  <style>
+    :root {
+      --primary: #6457a6;
+      --free: #66cdaa;
+      --occupied: #ff6f61;
+      --bg: #f4f4f9;
+      --text: #333;
+    }
 
-        nav a:hover {
-            text-decoration: underline;
-        }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+    }
 
-        h1 {
-            color: #6457a6;
-            text-align: center;
-            margin: 20px 0;
-        }
+    nav {
+      background-color: var(--primary);
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
 
-        #map, #video-stream, #data-section {
-            display: none;
-            margin: 0 auto;
-            width: 90%;
-            height: 70vh;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        }
+    .nav-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
+    .nav-title span {
+      font-size: 24px;
+    }
 
-        th, td {
-            padding: 10px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
+    .nav-links {
+      display: flex;
+      gap: 20px;
+    }
 
-        th {
-            background-color: #6457a6;
-            color: #fff;
-        }
+    .nav-links a {
+      color: white;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: background-color 0.3s ease;
+    }
 
-        td.free {
-            background-color: #66cdaa;
-            color: #fff;
-        }
+    .nav-links a:hover,
+    .nav-links a.active {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
 
-        td.occupied {
-            background-color: #ff6f61;
-            color: #fff;
-        }
-    </style>
+    h1 {
+      text-align: center;
+      margin: 25px 0;
+      color: var(--primary);
+    }
+
+    .section {
+      display: none;
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .video-container {
+      width: 100%;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    .video-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 16px;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      text-align: center;
+      border-bottom: 1px solid #ccc;
+    }
+
+    th {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    td.free {
+      background-color: var(--free);
+      color: white;
+    }
+
+    td.occupied {
+      background-color: var(--occupied);
+      color: white;
+    }
+
+    #map {
+      height: 500px;
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    @media (max-width: 768px) {
+      nav {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .nav-links {
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <!-- Navigation Bar -->
-    <nav>
-        <a href="#" onclick="showSection('map')">Map</a>
-        <a href="#" onclick="showSection('video-stream')">Live Video</a>
-        <a href="#" onclick="showSection('data-section')">Parking Data</a>
-    </nav>
+  <!-- 🌟 Navigation Bar with Title -->
+  <nav>
+    <div class="nav-title">
+      <span>🅿️</span> Smart Parking System
+    </div>
+    <div class="nav-links">
+      <a href="#" onclick="showSection('map-section', this)">Map</a>
+      <a href="#" onclick="showSection('video-section', this)">Live Video</a>
+      <a href="#" onclick="showSection('data-section', this)">Parking Data</a>
+    </div>
+  </nav>
 
-    <h1>Smart Parking System</h1>
+  <!-- Heading -->
+  <h1>🚗 Real-Time Parking Monitoring</h1>
 
-    <!-- Map Section -->
+  <!-- Sections -->
+  <div id="map-section" class="section">
     <div id="map"></div>
+  </div>
 
-    <!-- Video Stream Section -->
-    <div id="video-stream">
-        <video id="parking-video" controls autoplay muted>
-            <source src="https://raw.githubusercontent.com/priyasp2804/smart-parking-system/main/parking1.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
+  <div id="video-section" class="section">
+    <div class="video-container">
+      <video controls autoplay muted>
+        <source src="https://raw.githubusercontent.com/priyasp2804/smart-parking-system/main/parking1.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
     </div>
+  </div>
 
-    <!-- Parking Data Section -->
-    <div id="data-section">
-        <table>
-            <thead>
-                <tr>
-                    <th>Parking Area</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="data-body"></tbody>
-        </table>
-    </div>
+  <div id="data-section" class="section">
+    <table>
+      <thead>
+        <tr>
+          <th>Parking Area</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="data-body"></tbody>
+    </table>
+  </div>
 
-    <!-- Firebase Configuration and Script -->
-    <script>
-        // Firebase configuration
-        var firebaseConfig = {
-            apiKey: "AIzaSyDE7axj-wY3D-Hbka-_rdxcmFdeE6Qi5CM",
-            authDomain: "smart-parking-using-iot-8d52a.firebaseapp.com",
-            databaseURL: "https://smart-parking-using-iot-8d52a-default-rtdb.firebaseio.com",
-            projectId: "smart-parking-using-iot-8d52a",
-            storageBucket: "smart-parking-using-iot-8d52a.appspot.com",
-            messagingSenderId: "null",
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+  <!-- JavaScript -->
+  <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyDE7axj-wY3D-Hbka-_rdxcmFdeE6Qi5CM",
+      authDomain: "smart-parking-using-iot-8d52a.firebaseapp.com",
+      databaseURL: "https://smart-parking-using-iot-8d52a-default-rtdb.firebaseio.com",
+      projectId: "smart-parking-using-iot-8d52a",
+      storageBucket: "smart-parking-using-iot-8d52a.appspot.com",
+      messagingSenderId: "null",
+    };
 
-        // Reference Firebase Database
-        var parkingRef = firebase.database().ref('parking');
+    firebase.initializeApp(firebaseConfig);
+    var parkingRef = firebase.database().ref('parking');
 
-        // Fetch parking data and update in real-time
-        parkingRef.on('value', function(snapshot) {
-            var data = snapshot.val();
-            var dataBody = document.getElementById('data-body');
-            dataBody.innerHTML = ''; // Clear existing data
+    parkingRef.on('value', function(snapshot) {
+      var data = snapshot.val();
+      var dataBody = document.getElementById('data-body');
+      dataBody.innerHTML = '';
 
-            for (var area in data) {
-                var status = data[area] === 1 ? 'Free' : 'Occupied';
-                var row = `
-                    <tr>
-                        <td>Parking Area ${area}</td>
-                        <td class="${status.toLowerCase()}">${status}</td>
-                    </tr>
-                `;
-                dataBody.innerHTML += row;
-            }
-        });
+      for (var area in data) {
+        var status = data[area] === 1 ? 'Free' : 'Occupied';
+        var row = `
+          <tr>
+            <td>Parking Area ${area}</td>
+            <td class="${status.toLowerCase()}">${status}</td>
+          </tr>
+        `;
+        dataBody.innerHTML += row;
+      }
+    });
 
-        // Google Maps Initialization
-        function initMap() {
-            var parkingLocation = { lat: 11.0168, lng: 76.9558 }; // Replace with actual location
-            var map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 15,
-                center: parkingLocation
-            });
+    function initMap() {
+      var parkingLocation = { lat: 11.0168, lng: 76.9558 };
+      var map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 15,
+        center: parkingLocation
+      });
 
-            var marker = new google.maps.Marker({
-                position: parkingLocation,
-                map: map,
-                title: "Parking Area"
-            });
-        }
+      new google.maps.Marker({
+        position: parkingLocation,
+        map: map,
+        title: "Parking Area"
+      });
+    }
 
-        // Navigation Bar Logic
-        function showSection(sectionId) {
-            // Save the selected section in localStorage
-            localStorage.setItem('activeSection', sectionId);
+    function showSection(sectionId, link) {
+      localStorage.setItem('activeSection', sectionId);
 
-            document.getElementById("map").style.display = "none";
-            document.getElementById("video-stream").style.display = "none";
-            document.getElementById("data-section").style.display = "none";
+      document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+      document.getElementById(sectionId).style.display = 'block';
 
-            document.getElementById(sectionId).style.display = "block";
-        }
+      document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+      if (link) link.classList.add('active');
+    }
 
-        // Load the active section from localStorage on page load
-        window.onload = function() {
-            initMap();
-
-            var activeSection = localStorage.getItem('activeSection') || 'map';
-            showSection(activeSection);
-        };
-    </script>
+    window.onload = function () {
+      initMap();
+      let saved = localStorage.getItem('activeSection') || 'data-section';
+      const navLink = [...document.querySelectorAll('nav a')].find(a => a.onclick.toString().includes(saved));
+      showSection(saved, navLink);
+    };
+  </script>
 </body>
 </html>

@@ -1,52 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Smart Parking System</title>
+  <title>🅿️ Smart Parking System</title>
 
-  <!-- Firebase & Google Maps -->
+  <!-- Firebase + Google Maps -->
   <script src="https://www.gstatic.com/firebasejs/8.4.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.4.0/firebase-database.js"></script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDgNJJ1Egse_nlVJChLHjn3XLXUOUjbBuI"></script>
 
-  <!-- 👇 Updated Style -->
   <style>
     :root {
       --primary: #6457a6;
-      --free: #66cdaa;
-      --occupied: #ff6f61;
-      --bg: #f4f4f9;
-      --text: #333;
+      --gradient: linear-gradient(135deg, #b6fbff, #83a4d4);
+      --free: #00c896;
+      --occupied: #ff4d4d;
+      --text: #1d1d1f;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg);
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--gradient);
+      min-height: 100vh;
       color: var(--text);
     }
 
     nav {
-      background-color: var(--primary);
+      background: linear-gradient(90deg, #6457a6, #7d5fff);
       padding: 15px 30px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .nav-title {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: bold;
       color: #fff;
       display: flex;
       align-items: center;
       gap: 10px;
-    }
-
-    .nav-title span {
-      font-size: 24px;
     }
 
     .nav-links {
@@ -56,116 +57,125 @@
 
     .nav-links a {
       color: white;
-      font-weight: 600;
+      font-weight: bold;
       text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      transition: background-color 0.3s ease;
+      padding: 10px 18px;
+      border-radius: 8px;
+      transition: all 0.3s ease-in-out;
     }
 
     .nav-links a:hover,
     .nav-links a.active {
       background-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 10px rgba(255,255,255,0.3);
     }
 
     h1 {
       text-align: center;
+      font-size: 30px;
       margin: 25px 0;
       color: var(--primary);
+      text-shadow: 1px 1px 3px #ffffffaa;
     }
 
     .section {
       display: none;
       max-width: 1000px;
-      margin: auto;
-      padding: 20px;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin: 30px auto;
+      padding: 25px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(10px);}
+      to {opacity: 1; transform: translateY(0);}
     }
 
     .video-container {
       width: 100%;
-      aspect-ratio: 16/9;
+      aspect-ratio: 16 / 9;
       overflow: hidden;
-      border-radius: 8px;
+      border-radius: 12px;
     }
 
     .video-container video {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border: none;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 15px;
-      font-size: 16px;
+      font-size: 17px;
     }
 
     th, td {
-      padding: 12px 10px;
+      padding: 14px 12px;
       text-align: center;
       border-bottom: 1px solid #ccc;
     }
 
     th {
-      background-color: var(--primary);
+      background: var(--primary);
       color: white;
     }
 
     td.free {
       background-color: var(--free);
       color: white;
+      font-weight: bold;
     }
 
     td.occupied {
       background-color: var(--occupied);
       color: white;
+      font-weight: bold;
     }
 
     #map {
       height: 500px;
       width: 100%;
-      border-radius: 8px;
+      border-radius: 12px;
     }
 
     @media (max-width: 768px) {
       nav {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
       }
 
       .nav-links {
         flex-wrap: wrap;
+        justify-content: flex-start;
         gap: 10px;
+        margin-top: 10px;
       }
 
       h1 {
-        font-size: 22px;
+        font-size: 24px;
       }
     }
   </style>
 </head>
-
 <body>
-  <!-- 🌟 Navigation Bar with Title -->
+
+  <!-- Navbar -->
   <nav>
-    <div class="nav-title">
-      <span>🅿️</span> Smart Parking System
-    </div>
+    <div class="nav-title">🅿️ Smart Parking System</div>
     <div class="nav-links">
-      <a href="#" onclick="showSection('map-section', this)">Map</a>
-      <a href="#" onclick="showSection('video-section', this)">Live Video</a>
-      <a href="#" onclick="showSection('data-section', this)">Parking Data</a>
+      <a href="#" onclick="showSection('map-section', this)">🗺️ Map</a>
+      <a href="#" onclick="showSection('video-section', this)">📹 Live Video</a>
+      <a href="#" onclick="showSection('data-section', this)">📊 Parking Data</a>
     </div>
   </nav>
 
-  <!-- Heading -->
-  <h1>🚗 Real-Time Parking Monitoring</h1>
+  <!-- Page Title -->
+  <h1>🚘 Real-Time Parking Availability</h1>
 
   <!-- Sections -->
   <div id="map-section" class="section">
@@ -175,7 +185,7 @@
   <div id="video-section" class="section">
     <div class="video-container">
       <video controls autoplay muted>
-        <source src="https://raw.githubusercontent.com/priyasp2804/smart-parking-system/main/parking1.mp4" type="video/mp4">
+        <source src="https://raw.githubusercontent.com/priyasp2804/smart-parking-system/main/parking1.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
     </div>
@@ -193,7 +203,7 @@
     </table>
   </div>
 
-  <!-- JavaScript -->
+  <!-- JS -->
   <script>
     var firebaseConfig = {
       apiKey: "AIzaSyDE7axj-wY3D-Hbka-_rdxcmFdeE6Qi5CM",
@@ -203,7 +213,6 @@
       storageBucket: "smart-parking-using-iot-8d52a.appspot.com",
       messagingSenderId: "null",
     };
-
     firebase.initializeApp(firebaseConfig);
     var parkingRef = firebase.database().ref('parking');
 
@@ -213,11 +222,11 @@
       dataBody.innerHTML = '';
 
       for (var area in data) {
-        var status = data[area] === 1 ? 'Free' : 'Occupied';
+        var status = data[area] === 1 ? '✅ Free' : '❌ Occupied';
         var row = `
           <tr>
             <td>Parking Area ${area}</td>
-            <td class="${status.toLowerCase()}">${status}</td>
+            <td class="${data[area] === 1 ? 'free' : 'occupied'}">${status}</td>
           </tr>
         `;
         dataBody.innerHTML += row;
@@ -228,22 +237,19 @@
       var parkingLocation = { lat: 11.0168, lng: 76.9558 };
       var map = new google.maps.Map(document.getElementById("map"), {
         zoom: 15,
-        center: parkingLocation
+        center: parkingLocation,
       });
-
       new google.maps.Marker({
         position: parkingLocation,
         map: map,
-        title: "Parking Area"
+        title: "Parking Area",
       });
     }
 
     function showSection(sectionId, link) {
       localStorage.setItem('activeSection', sectionId);
-
       document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
       document.getElementById(sectionId).style.display = 'block';
-
       document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
       if (link) link.classList.add('active');
     }
